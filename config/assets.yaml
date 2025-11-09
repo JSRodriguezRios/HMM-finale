@@ -1,0 +1,13 @@
+assets:
+  BTCUSD:
+    qc_ticker: BTCUSD
+    external_symbol: BTC
+  ETHUSD:
+    qc_ticker: ETHUSD
+    external_symbol: ETH
+  SOLUSD:
+    qc_ticker: SOLUSD
+    external_symbol: SOL
+  BNBUSD:
+    qc_ticker: BNBUSD
+    external_symbol: BNB
