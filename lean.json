@@ -1,0 +1,7 @@
+{
+  "$schema": "https://www.quantconnect.com/lean/schema/lean.json",
+  "algorithm-language": "Python",
+  "algorithm-location": "qcsrc/HMMCryptoAlgorithm.py",
+  "data-folder": "./qc_data",
+  "results-destination-folder": "./results"
+}
