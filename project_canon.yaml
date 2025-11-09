@@ -1,7 +1,7 @@
 coding_canon:
   meta:
     name: HMM Crypto QuantConnect Strategy
-    version: 0.6.0
+    version: 0.7.0
     owner: user
     date: 2024-05-09
   goals:
@@ -65,3 +65,4 @@ coding_canon:
       - misaligned hourly merges when upstream data files are missing
       - feature scaling drift between offline pipeline and QuantConnect runtime
       - hidden-state label drift between offline training and live inference
+      - probability export drift between offline pipeline and QuantConnect custom data

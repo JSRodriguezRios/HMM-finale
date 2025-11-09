@@ -28,6 +28,12 @@ def get_data_path(*parts: Iterable[str]) -> Path:
     return _PROJECT_ROOT.joinpath("data", *parts)
 
 
+def get_qc_data_path(*parts: Iterable[str]) -> Path:
+    """Return a path under the ``qc_data`` directory."""
+
+    return _PROJECT_ROOT.joinpath("qc_data", *parts)
+
+
 def ensure_directory(path: Path) -> Path:
     """Ensure ``path`` exists as a directory and return it."""
 
@@ -35,4 +41,10 @@ def ensure_directory(path: Path) -> Path:
     return path
 
 
-__all__ = ["ensure_directory", "get_config_path", "get_data_path", "get_project_root"]
+__all__ = [
+    "ensure_directory",
+    "get_config_path",
+    "get_data_path",
+    "get_project_root",
+    "get_qc_data_path",
+]

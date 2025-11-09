@@ -60,7 +60,11 @@ every fetch cycle it aligns the raw datasets into hourly UTC frames under
 `data/processed/` and `data/models/hmm/` respectively. When enough hourly bars are
 available the orchestrator also trains a Gaussian HMM per asset, writing model
 artifacts to `data/models/hmm/<SYMBOL>_hmm.pkl` and diagnostics (log-likelihood,
-posterior probabilities, and error metrics) to `data/models/diagnostics/`.
+posterior probabilities, and error metrics) to `data/models/diagnostics/`. The
+trained models are then reloaded to score the latest feature matrices, and the
+resulting posterior probabilities are exported to QuantConnect-ready CSV files
+under `qc_data/custom/HMMStateProba/<symbol>.csv` with hourly timestamps for warm
+start continuity.
 
 ### Data source endpoints
 
