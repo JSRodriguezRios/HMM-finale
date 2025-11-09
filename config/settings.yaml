@@ -1,0 +1,7 @@
+threshold: 0.7
+lookback_hours: 720
+retrain_hours: 24
+max_states: 3
+min_samples: 200
+notes: |
+  Placeholder defaults for initial scaffolding. Adjust after diagnostics.

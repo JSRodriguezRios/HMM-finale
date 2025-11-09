@@ -1,0 +1,54 @@
+"""Orchestrate external data fetches for configured assets."""
+
+from __future__ import annotations
+
+import datetime as dt
+from typing import Iterable, Optional
+
+from qcsrc.io import load_assets_config
+from qcsrc.util.logging_utils import get_logger
+
+from .fetch_binance_orderbook import fetch_binance_orderbook
+from .fetch_coinstats_sentiment import fetch_coinstats_sentiment
+from .fetch_cryptoquant import fetch_cryptoquant
+
+_LOGGER = get_logger(__name__)
+
+
+def _iter_assets(symbols: Optional[Iterable[str]] = None) -> Iterable[str]:
+    assets = load_assets_config()
+    if symbols is None:
+        return assets.keys()
+    return symbols
+
+
+def run_pipeline(
+    start: dt.datetime,
+    end: dt.datetime,
+    *,
+    symbols: Optional[Iterable[str]] = None,
+) -> None:
+    """Run all data fetchers for the configured assets."""
+
+    if start >= end:
+        raise ValueError("start must be earlier than end")
+
+    for symbol in _iter_assets(symbols):
+        _LOGGER.info("Fetching CryptoQuant OHLCV for %s", symbol)
+        fetch_cryptoquant(symbol, start, end)
+
+        _LOGGER.info("Fetching Binance order book for %s", symbol)
+        fetch_binance_orderbook(symbol, start, end)
+
+        _LOGGER.info("Fetching CoinStats sentiment for %s", symbol)
+        fetch_coinstats_sentiment(symbol, start, end)
+
+
+def main() -> None:
+    end = dt.datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+    start = end - dt.timedelta(hours=24)
+    run_pipeline(start, end)
+
+
+if __name__ == "__main__":
+    main()
