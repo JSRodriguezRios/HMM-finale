@@ -8,6 +8,7 @@ from typing import Iterable, Optional
 from qcsrc.io import load_assets_config
 from qcsrc.util.logging_utils import get_logger
 
+from .align_merge import align_and_merge
 from .fetch_binance_orderbook import fetch_binance_orderbook
 from .fetch_coinstats_sentiment import fetch_coinstats_sentiment
 from .fetch_cryptoquant import fetch_cryptoquant
@@ -42,6 +43,12 @@ def run_pipeline(
 
         _LOGGER.info("Fetching CoinStats sentiment for %s", symbol)
         fetch_coinstats_sentiment(symbol, start, end)
+
+        current = start
+        while current < end:
+            _LOGGER.info("Aligning data for %s at %s", symbol, current.date())
+            align_and_merge(symbol, current)
+            current += dt.timedelta(days=1)
 
 
 def main() -> None:

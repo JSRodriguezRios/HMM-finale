@@ -1,7 +1,7 @@
 coding_canon:
   meta:
     name: HMM Crypto QuantConnect Strategy
-    version: 0.3.0
+    version: 0.4.0
     owner: user
     date: 2024-05-09
   goals:
@@ -31,7 +31,7 @@ coding_canon:
   tech_stack:
     frontend: none
     backend: Python 3.9+
-    validation: Pydantic (planned)
+    validation: Pydantic (in use)
     testing:
       unit_min: true
       e2e_min: false
@@ -62,3 +62,4 @@ coding_canon:
       - deployment drift between local and cloud
       - credential management drift between local secrets and QuantConnect
       - external API schema changes breaking fetchers
+      - misaligned hourly merges when upstream data files are missing

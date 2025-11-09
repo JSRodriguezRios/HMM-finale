@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, List
 
+import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
@@ -111,10 +112,49 @@ class CoinStatsResponse(BaseModel):
         return entries
 
 
+class InterimRow(BaseModel):
+    """Schema representing a single aligned hourly observation."""
+
+    timestamp: datetime
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: float
+    quote_volume: float
+    best_bid: float
+    best_ask: float
+    bid_ask_spread: float
+    depth_pct_1: float
+    depth_pct_5: float
+    order_imbalance: float
+    fear_greed_score: float
+    confidence: float
+
+    @field_validator("timestamp", mode="before")
+    @classmethod
+    def _ensure_utc(cls, value: Any):
+        if isinstance(value, datetime) and value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value
+
+
+def validate_interim_frame(frame: pd.DataFrame) -> pd.DataFrame:
+    """Validate an aligned hourly DataFrame."""
+
+    if frame.empty:
+        return frame
+    for record in frame.to_dict("records"):
+        InterimRow.model_validate(record)
+    return frame
+
+
 __all__ = [
     "BinanceOrderBookEntry",
     "CoinStatsResponse",
     "CoinStatsSentimentEntry",
     "CryptoQuantEntry",
     "CryptoQuantResponse",
+    "InterimRow",
+    "validate_interim_frame",
 ]
