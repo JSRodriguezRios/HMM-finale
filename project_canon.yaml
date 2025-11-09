@@ -1,7 +1,7 @@
 coding_canon:
   meta:
     name: HMM Crypto QuantConnect Strategy
-    version: 0.1.0
+    version: 0.2.0
     owner: user
     date: 2024-05-09
   goals:
@@ -38,7 +38,7 @@ coding_canon:
     package_manager: pip
   repo_layout:
     pattern: web+api_shallow
-    notes: Maintain shallow directories with high locality between pipeline modules and tests.
+    notes: Maintain shallow directories with high locality between pipeline modules, utilities, and their tests.
   contracts:
     standard_envelopes: true
   deployment:
@@ -60,3 +60,4 @@ coding_canon:
       - indirection creep
       - missing validation
       - deployment drift between local and cloud
+      - credential management drift between local secrets and QuantConnect
