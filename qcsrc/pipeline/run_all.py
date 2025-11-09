@@ -1,12 +1,18 @@
-"""Orchestrate external data fetches for configured assets."""
+"""Orchestrate external data fetches and feature generation for configured assets."""
 
 from __future__ import annotations
 
 import datetime as dt
+from pathlib import Path
 from typing import Iterable, Optional
 
+import pandas as pd
+
+from qcsrc.features import build_feature_matrix
 from qcsrc.io import load_assets_config
 from qcsrc.util.logging_utils import get_logger
+
+from qcsrc.io.file_locator import get_data_path
 
 from .align_merge import align_and_merge
 from .fetch_binance_orderbook import fetch_binance_orderbook
@@ -49,6 +55,18 @@ def run_pipeline(
             _LOGGER.info("Aligning data for %s at %s", symbol, current.date())
             align_and_merge(symbol, current)
             current += dt.timedelta(days=1)
+
+        interim_path = Path(get_data_path("interim")) / f"{symbol}.parquet"
+        if interim_path.exists():
+            _LOGGER.info("Building feature matrix for %s", symbol)
+            frame = pd.read_parquet(interim_path)
+            build_feature_matrix(symbol, frame)
+        else:
+            _LOGGER.warning(
+                "Skipping feature build for %s because interim data is missing at %s",
+                symbol,
+                interim_path,
+            )
 
 
 def main() -> None:
