@@ -66,6 +66,23 @@ resulting posterior probabilities are exported to QuantConnect-ready CSV files
 under `qc_data/custom/HMMStateProba/<symbol>.csv` with hourly timestamps for warm
 start continuity.
 
+## QuantConnect custom data definitions
+
+Three PythonData classes live under `qcsrc/custom_data/` to ingest the exported
+CSV feeds once the strategy is running on QuantConnect:
+
+- `LiquidityBitAsk` parses order book depth, spread, and imbalance metrics stored
+  under `qc_data/custom/LiquidityBitAsk/`.
+- `MarketSentiment` exposes CoinStats fear-and-greed scores and confidence values
+  under `qc_data/custom/MarketSentiment/`.
+- `HMMStateProba` reads posterior probabilities from
+  `qc_data/custom/HMMStateProba/` and offers a `GetSignal(threshold)` helper that
+  returns `long`, `short`, or `flat` based on the configured probability
+  threshold (default 0.7).
+
+Each class returns a one-hour bar ending at `Time + 1 hour`, aligning with the
+hourly cadence used throughout the pipeline.
+
 ### Data source endpoints
 
 The fetchers are wired to the user's preferred provider endpoints:
