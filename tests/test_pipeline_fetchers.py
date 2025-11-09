@@ -121,7 +121,8 @@ def test_fetch_binance_orderbook_computes_metrics(monkeypatch, tmp_path):
         output_dir=tmp_path,
     )
 
-    assert frame.shape == (2, 6)
+    assert frame.shape == (2, 7)
+    assert frame["best_ask"].iloc[0] == pytest.approx(101.0)
     assert frame["best_bid"].iloc[0] == pytest.approx(100.0)
     assert frame["bid_ask_spread"].iloc[0] == pytest.approx(1.0)
     assert frame["depth_pct_1"].iloc[0] == pytest.approx(8.5)

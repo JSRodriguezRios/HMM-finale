@@ -94,7 +94,7 @@ def fetch_cryptoquant(
     response = _request(session, endpoint, headers=headers, params=params)
     payload = response.json()
 
-    data = CryptoQuantResponse.parse_obj(payload)
+    data = CryptoQuantResponse.model_validate(payload)
     if not data.result:
         _LOGGER.warning("CryptoQuant returned no data for %s", symbol)
         return pd.DataFrame(columns=[
@@ -107,7 +107,7 @@ def fetch_cryptoquant(
             "quote_volume",
         ])
 
-    frame = pd.DataFrame([entry.dict() for entry in data.result])
+    frame = pd.DataFrame([entry.model_dump() for entry in data.result])
     frame["timestamp"] = pd.to_datetime(frame["timestamp"], utc=True)
     frame.sort_values("timestamp", inplace=True)
     frame.reset_index(drop=True, inplace=True)

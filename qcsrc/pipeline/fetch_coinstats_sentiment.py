@@ -79,17 +79,17 @@ def fetch_coinstats_sentiment(
         )
 
     payload = response.json()
-    data = CoinStatsResponse.parse_obj(payload)
+    data = CoinStatsResponse.model_validate(payload)
     if not data.data:
         _LOGGER.warning("CoinStats returned no data for %s", symbol)
         return pd.DataFrame(columns=["timestamp", "fear_greed_score", "confidence"])
 
-    frame = pd.DataFrame([entry.dict() for entry in data.data])
+    frame = pd.DataFrame([entry.model_dump() for entry in data.data])
     frame["timestamp"] = pd.to_datetime(frame["timestamp"], utc=True)
     frame.sort_values("timestamp", inplace=True)
     frame.reset_index(drop=True, inplace=True)
 
-    hourly_index = pd.date_range(start_utc, end_utc, freq="1H", inclusive="left", tz=timezone.utc)
+    hourly_index = pd.date_range(start_utc, end_utc, freq="1h", inclusive="left", tz=timezone.utc)
     frame.set_index("timestamp", inplace=True)
     frame = frame.reindex(hourly_index, method="pad")
     frame.index.name = "timestamp"

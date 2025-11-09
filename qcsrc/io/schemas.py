@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class CryptoQuantEntry(BaseModel):
@@ -19,8 +19,7 @@ class CryptoQuantEntry(BaseModel):
     volume: float = Field(..., alias="volume")
     quote_volume: float
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class BinanceOrderBookEntry(BaseModel):
@@ -50,8 +49,9 @@ class CryptoQuantResponse(BaseModel):
 class CoinStatsResponse(BaseModel):
     data: List[CoinStatsSentimentEntry]
 
-    @validator("data", pre=True)
-    def _extract_data(cls, value):  # type: ignore[override]
+    @field_validator("data", mode="before")
+    @classmethod
+    def _extract_data(cls, value):
         if isinstance(value, dict) and "items" in value:
             return value["items"]
         return value

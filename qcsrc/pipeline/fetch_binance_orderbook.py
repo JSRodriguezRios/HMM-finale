@@ -122,7 +122,7 @@ def fetch_binance_orderbook(
     start_utc = _ensure_utc(start)
     end_utc = _ensure_utc(end)
     timestamps: List[dt.datetime] = list(
-        pd.date_range(start_utc, end_utc, freq="1H", inclusive="left", tz=timezone.utc)
+        pd.date_range(start_utc, end_utc, freq="1h", inclusive="left", tz=timezone.utc)
     )
     rows = []
 
@@ -139,7 +139,7 @@ def fetch_binance_orderbook(
         bids = _normalize_orders(payload.get("bids", []))
         asks = _normalize_orders(payload.get("asks", []))
         entry = _orderbook_metrics(bids, asks, ts)
-        rows.append(entry.dict())
+        rows.append(entry.model_dump())
 
     frame = pd.DataFrame(rows)
     if not frame.empty:
