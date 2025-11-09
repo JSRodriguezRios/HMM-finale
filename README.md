@@ -57,7 +57,10 @@ The script loads symbols from `config/assets.yaml`, requests hourly data for the
 last 24 hours, and writes CSV files into `data/external/` for each source. After
 every fetch cycle it aligns the raw datasets into hourly UTC frames under
 `data/interim/` and generates scaled feature matrices plus fitted scalers under
-`data/processed/` and `data/models/hmm/` respectively.
+`data/processed/` and `data/models/hmm/` respectively. When enough hourly bars are
+available the orchestrator also trains a Gaussian HMM per asset, writing model
+artifacts to `data/models/hmm/<SYMBOL>_hmm.pkl` and diagnostics (log-likelihood,
+posterior probabilities, and error metrics) to `data/models/diagnostics/`.
 
 ### Data source endpoints
 

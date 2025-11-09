@@ -34,4 +34,15 @@ def load_state_map() -> Dict[str, int]:
         return json.load(handle)
 
 
-__all__ = ["load_assets_config", "load_state_map", "load_yaml_config"]
+def load_settings_config() -> Dict[str, Any]:
+    """Return the training and inference settings defined in ``settings.yaml``."""
+
+    return load_yaml_config(get_config_path("settings.yaml"))
+
+
+__all__ = [
+    "load_assets_config",
+    "load_settings_config",
+    "load_state_map",
+    "load_yaml_config",
+]

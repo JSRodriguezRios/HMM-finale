@@ -18,6 +18,7 @@ from .align_merge import align_and_merge
 from .fetch_binance_orderbook import fetch_binance_orderbook
 from .fetch_coinstats_sentiment import fetch_coinstats_sentiment
 from .fetch_cryptoquant import fetch_cryptoquant
+from .train_hmm import train_hmm_for_symbol
 
 _LOGGER = get_logger(__name__)
 
@@ -61,6 +62,14 @@ def run_pipeline(
             _LOGGER.info("Building feature matrix for %s", symbol)
             frame = pd.read_parquet(interim_path)
             build_feature_matrix(symbol, frame)
+
+            try:
+                _LOGGER.info("Training HMM for %s", symbol)
+                train_hmm_for_symbol(symbol)
+            except ValueError as error:
+                _LOGGER.warning("Skipping HMM training for %s: %s", symbol, error)
+            except FileNotFoundError as error:
+                _LOGGER.warning("Missing artifacts for %s: %s", symbol, error)
         else:
             _LOGGER.warning(
                 "Skipping feature build for %s because interim data is missing at %s",
