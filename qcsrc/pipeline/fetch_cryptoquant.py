@@ -17,7 +17,7 @@ from qcsrc.util.logging_utils import get_logger
 from qcsrc.util.secrets import CredentialSet, MissingCredentialError, load_credentials
 
 _LOGGER = get_logger(__name__)
-_BASE_URL = "https://api.cryptoquant.com/v1/markets"
+_BASE_URL = "https://api.cryptoquant.com/v1"
 
 
 def _ensure_utc(timestamp: dt.datetime) -> dt.datetime:
@@ -51,7 +51,7 @@ def _build_output_path(symbol: str, date: dt.date, output_dir: Optional[Path]) -
 
 def _load_credentials() -> CredentialSet:
     try:
-        return load_credentials()
+        return load_credentials(required_keys=("CRYPTOQUANT_API_KEY",))
     except MissingCredentialError as exc:
         raise RuntimeError("CryptoQuant credentials are required for fetches") from exc
 
@@ -76,21 +76,41 @@ def fetch_cryptoquant(
     if not asset_meta:
         raise KeyError(f"Unknown symbol {symbol!r} in assets config")
 
+    cq_meta = asset_meta.get("cryptoquant")
+    if not cq_meta:
+        raise KeyError(
+            f"CryptoQuant configuration missing for symbol {symbol!r}"
+        )
+
     credentials = _load_credentials()
     headers = {"x-api-key": credentials.cryptoquant_api_key}
 
-    external_symbol = asset_meta["external_symbol"]
+    asset_path = cq_meta.get("asset_path")
+    if not asset_path:
+        raise KeyError(
+            f"cryptoquant.asset_path missing for symbol {symbol!r}"
+        )
+
+    market = cq_meta.get("market", "spot")
+    exchange = cq_meta.get("exchange", "all_exchange")
+    symbol_param = cq_meta.get("symbol")
+    if not symbol_param:
+        raise KeyError(
+            f"cryptoquant.symbol missing for symbol {symbol!r}"
+        )
+    limit = str(cq_meta.get("limit", 1000))
     start_utc = _ensure_utc(start)
     end_utc = _ensure_utc(end)
     params = {
-        "symbol": external_symbol,
         "window": window,
-        "from": start_utc.replace(microsecond=0).isoformat(),
-        "to": end_utc.replace(microsecond=0).isoformat(),
+        "market": market,
+        "exchange": exchange,
+        "symbol": symbol_param,
+        "limit": limit,
     }
 
     session = session or requests.Session()
-    endpoint = f"{_BASE_URL}/{external_symbol}/ohlcv"
+    endpoint = f"{_BASE_URL}/{asset_path}/market-data/price-ohlcv"
     response = _request(session, endpoint, headers=headers, params=params)
     payload = response.json()
 
@@ -112,7 +132,9 @@ def fetch_cryptoquant(
     frame.sort_values("timestamp", inplace=True)
     frame.reset_index(drop=True, inplace=True)
 
-    if persist:
+    frame = frame[(frame["timestamp"] >= start_utc) & (frame["timestamp"] < end_utc)]
+
+    if persist and not frame.empty:
         dates: Iterable[dt.date] = frame["timestamp"].dt.date.unique()
         for date in dates:
             day_frame = frame[frame["timestamp"].dt.date == date]

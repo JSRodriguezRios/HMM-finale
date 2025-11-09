@@ -27,10 +27,10 @@ class MissingCredentialError(KeyError):
 class CredentialSet:
     """Container for third-party API credentials."""
 
-    cryptoquant_api_key: str
-    coinstats_api_key: str
-    binance_api_key: str
-    binance_api_secret: str
+    cryptoquant_api_key: str = ""
+    coinstats_api_key: str = ""
+    binance_api_key: str = ""
+    binance_api_secret: str = ""
 
     def as_dict(self) -> Dict[str, str]:
         """Represent the credential set as a plain dictionary."""
@@ -107,10 +107,10 @@ def load_credentials(
         )
 
     return CredentialSet(
-        cryptoquant_api_key=merged["CRYPTOQUANT_API_KEY"],
-        coinstats_api_key=merged["COINSTATS_API_KEY"],
-        binance_api_key=merged["BINANCE_API_KEY"],
-        binance_api_secret=merged["BINANCE_API_SECRET"],
+        cryptoquant_api_key=merged.get("CRYPTOQUANT_API_KEY", ""),
+        coinstats_api_key=merged.get("COINSTATS_API_KEY", ""),
+        binance_api_key=merged.get("BINANCE_API_KEY", ""),
+        binance_api_secret=merged.get("BINANCE_API_SECRET", ""),
     )
 
 

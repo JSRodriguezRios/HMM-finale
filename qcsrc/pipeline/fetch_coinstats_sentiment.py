@@ -16,7 +16,7 @@ from qcsrc.util.logging_utils import get_logger
 from qcsrc.util.secrets import CredentialSet, MissingCredentialError, load_credentials
 
 _LOGGER = get_logger(__name__)
-_BASE_URL = "https://api.coinstats.app/public/v1/sentiment"
+_BASE_URL = "https://openapiv1.coinstats.app/insights/fear-and-greed"
 
 
 def _ensure_utc(timestamp: dt.datetime) -> dt.datetime:
@@ -27,7 +27,7 @@ def _ensure_utc(timestamp: dt.datetime) -> dt.datetime:
 
 def _load_credentials() -> CredentialSet:
     try:
-        return load_credentials()
+        return load_credentials(required_keys=("COINSTATS_API_KEY",))
     except MissingCredentialError as exc:
         raise RuntimeError("CoinStats credentials are required for fetches") from exc
 
@@ -59,19 +59,20 @@ def fetch_coinstats_sentiment(
     if not asset_meta:
         raise KeyError(f"Unknown symbol {symbol!r} in assets config")
 
+    coinstats_meta = asset_meta.get("coinstats", {})
+    symbol_param = coinstats_meta.get("symbol")
+
     credentials = _load_credentials()
     headers = {"X-API-KEY": credentials.coinstats_api_key}
 
     session = session or requests.Session()
     start_utc = _ensure_utc(start)
     end_utc = _ensure_utc(end)
-    params = {
-        "symbol": asset_meta["external_symbol"],
-        "start": start_utc.replace(microsecond=0).isoformat(),
-        "end": end_utc.replace(microsecond=0).isoformat(),
-    }
+    params = {}
+    if symbol_param:
+        params["symbol"] = symbol_param
 
-    response = session.get(_BASE_URL, headers=headers, params=params, timeout=30)
+    response = session.get(_BASE_URL, headers=headers, params=params or None, timeout=30)
     if response.status_code >= 400:
         raise requests.HTTPError(
             f"CoinStats error {response.status_code}: {response.text}",
@@ -79,7 +80,8 @@ def fetch_coinstats_sentiment(
         )
 
     payload = response.json()
-    data = CoinStatsResponse.model_validate(payload)
+    normalized_payload = {"data": payload.get("data", payload)}
+    data = CoinStatsResponse.model_validate(normalized_payload)
     if not data.data:
         _LOGGER.warning("CoinStats returned no data for %s", symbol)
         return pd.DataFrame(columns=["timestamp", "fear_greed_score", "confidence"])
@@ -94,6 +96,8 @@ def fetch_coinstats_sentiment(
     frame = frame.reindex(hourly_index, method="pad")
     frame.index.name = "timestamp"
     frame.reset_index(inplace=True)
+
+    frame = frame[(frame["timestamp"] >= start_utc) & (frame["timestamp"] < end_utc)]
 
     if persist and not frame.empty:
         by_date = frame.groupby(frame["timestamp"].dt.date)

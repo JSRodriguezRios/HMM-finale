@@ -132,18 +132,20 @@ def test_fetch_binance_orderbook_computes_metrics(monkeypatch, tmp_path):
 
 def test_fetch_coinstats_sentiment_interpolates(monkeypatch, tmp_path):
     payload = {
-        "data": [
-            {
-                "timestamp": "2024-01-01T00:00:00Z",
-                "fear_greed_score": 40,
-                "confidence": 0.5,
-            },
-            {
-                "timestamp": "2024-01-01T03:00:00Z",
-                "fear_greed_score": 50,
-                "confidence": 0.6,
-            },
-        ]
+        "data": {
+            "items": [
+                {
+                    "timestamp": "2024-01-01T00:00:00Z",
+                    "value": 40,
+                    "confidence": 0.5,
+                },
+                {
+                    "timestamp": "2024-01-01T03:00:00Z",
+                    "value": 50,
+                    "confidence": 0.6,
+                },
+            ]
+        }
     }
 
     dummy_session = DummySession([DummyResponse(payload)])

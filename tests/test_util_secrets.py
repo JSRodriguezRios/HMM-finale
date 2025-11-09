@@ -60,3 +60,15 @@ def test_missing_credentials_raise(tmp_path, monkeypatch):
     monkeypatch.setenv("CRYPTOQUANT_API_KEY", "env_cq")
     with pytest.raises(MissingCredentialError):
         load_credentials(secrets_path=secrets_path)
+
+
+def test_partial_credentials(monkeypatch):
+    monkeypatch.delenv("CRYPTOQUANT_API_KEY", raising=False)
+    monkeypatch.setenv("CRYPTOQUANT_API_KEY", "partial_cq")
+
+    creds = load_credentials(required_keys=("CRYPTOQUANT_API_KEY",))
+
+    assert creds.cryptoquant_api_key == "partial_cq"
+    assert creds.coinstats_api_key == ""
+    assert creds.binance_api_key == ""
+

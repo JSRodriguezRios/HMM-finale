@@ -12,23 +12,15 @@ import requests
 from qcsrc.io import ensure_directory, get_data_path, load_assets_config
 from qcsrc.io.schemas import BinanceOrderBookEntry
 from qcsrc.util.logging_utils import get_logger
-from qcsrc.util.secrets import CredentialSet, MissingCredentialError, load_credentials
 
 _LOGGER = get_logger(__name__)
-_BASE_URL = "https://api.binance.com/api/v3/depth"
+_BASE_URL = "https://api3.binance.com/api/v3/depth"
 
 
 def _ensure_utc(timestamp: dt.datetime) -> dt.datetime:
     if timestamp.tzinfo is None:
         return timestamp.replace(tzinfo=timezone.utc)
     return timestamp.astimezone(timezone.utc)
-
-
-def _load_credentials() -> CredentialSet:
-    try:
-        return load_credentials()
-    except MissingCredentialError as exc:
-        raise RuntimeError("Binance credentials are required for fetches") from exc
 
 
 def _build_output_path(symbol: str, timestamp: dt.datetime, output_dir: Optional[Path]) -> Path:
@@ -114,8 +106,8 @@ def fetch_binance_orderbook(
     if not asset_meta:
         raise KeyError(f"Unknown symbol {symbol!r} in assets config")
 
-    credentials = _load_credentials()
-    headers = {"X-MBX-APIKEY": credentials.binance_api_key}
+    binance_meta = asset_meta.get("binance", {})
+    binance_symbol = binance_meta.get("symbol", asset_meta.get("qc_ticker"))
 
     session = session or requests.Session()
 
@@ -127,8 +119,8 @@ def fetch_binance_orderbook(
     rows = []
 
     for ts in timestamps:
-        params = {"symbol": asset_meta["qc_ticker"], "limit": str(limit)}
-        response = session.get(_BASE_URL, headers=headers, params=params, timeout=30)
+        params = {"symbol": binance_symbol, "limit": str(limit)}
+        response = session.get(_BASE_URL, params=params, timeout=30)
         if response.status_code >= 400:
             raise requests.HTTPError(
                 f"Binance error {response.status_code}: {response.text}",

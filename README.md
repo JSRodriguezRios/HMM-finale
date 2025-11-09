@@ -56,3 +56,13 @@ python -m qcsrc.pipeline.run_all
 The script loads symbols from `config/assets.yaml`, requests hourly data for the
 last 24 hours, and writes CSV files into `data/external/` for each source.
 
+### Data source endpoints
+
+The fetchers are wired to the user's preferred provider endpoints:
+
+- **CryptoQuant OHLCV** – `https://api.cryptoquant.com/v1/<asset>/market-data/price-ohlcv` with hourly windows, spot market, and `all_exchange` aggregation.
+- **CoinStats sentiment** – `https://openapiv1.coinstats.app/insights/fear-and-greed`, authenticated via the `COINSTATS_API_KEY` header.
+- **Binance order book liquidity** – `https://api3.binance.com/api/v3/depth`, accessed without authentication using the symbols defined under `assets.*.binance.symbol`.
+
+Populate `CRYPTOQUANT_API_KEY` and `COINSTATS_API_KEY` in your environment (or `secrets/credentials.json`) before running the pipeline to authenticate with the private APIs.
+
