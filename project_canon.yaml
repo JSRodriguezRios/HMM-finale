@@ -1,7 +1,7 @@
 coding_canon:
   meta:
     name: HMM Crypto QuantConnect Strategy
-    version: 0.2.0
+    version: 0.3.0
     owner: user
     date: 2024-05-09
   goals:
@@ -61,3 +61,4 @@ coding_canon:
       - missing validation
       - deployment drift between local and cloud
       - credential management drift between local secrets and QuantConnect
+      - external API schema changes breaking fetchers

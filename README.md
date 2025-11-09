@@ -45,3 +45,14 @@ Pytest scaffolding is in `tests/`; add unit tests as pipeline modules are implem
 pytest
 ```
 
+## Running the external data pipeline
+
+To execute all external fetchers locally, run:
+
+```bash
+python -m qcsrc.pipeline.run_all
+```
+
+The script loads symbols from `config/assets.yaml`, requests hourly data for the
+last 24 hours, and writes CSV files into `data/external/` for each source.
+
