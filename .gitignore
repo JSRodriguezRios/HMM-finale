@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.build/
+.dist/
+
+# Environments
+.env
+.venv/
+venv/
+ENV/
+
+# Data & secrets
+secrets/
+*.parquet
+*.pkl
+*.csv
+qc_data/custom/**/*.csv
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Lean/QC cache
+*.log
+*.results.json
+cache/
+obj/

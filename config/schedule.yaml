@@ -1,0 +1,8 @@
+fetch:
+  cadence: hourly
+  retry_backoff: exponential
+retrain:
+  cadence: daily
+  hour_utc: 0
+export:
+  cadence: hourly
