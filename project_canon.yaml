@@ -1,0 +1,65 @@
+coding_canon:
+  meta:
+    name: HMM Crypto QuantConnect Strategy
+    version: 0.4.0
+    owner: user
+    date: 2024-05-09
+  goals:
+    core_goal: Deliver a QuantConnect-ready HMM-based crypto trading workflow with reproducible data and model pipelines.
+    audience: Quantitative researchers deploying on QuantConnect cloud.
+    success_criteria:
+      - Repository mirrors planned pipeline stages end-to-end.
+      - QuantConnect algorithm can ingest exported probabilities and act on thresholds.
+      - Deployment steps for dependencies and artifacts are documented.
+  flows:
+    bullets_ref: flows_text_v1
+    xml_ref: flows_xml_v1
+  architecture:
+    build_mode: simple_monolith
+    interface: cli
+    logic_link: other_simple_rpc
+    data: none
+  design:
+    tokens:
+      color: none
+      spacing: none
+      radius: none
+      typography: none
+      motion: none
+    system: none
+    accessibility: not_applicable
+  tech_stack:
+    frontend: none
+    backend: Python 3.9+
+    validation: Pydantic (in use)
+    testing:
+      unit_min: true
+      e2e_min: false
+    package_manager: pip
+  repo_layout:
+    pattern: web+api_shallow
+    notes: Maintain shallow directories with high locality between pipeline modules, utilities, and their tests.
+  contracts:
+    standard_envelopes: true
+  deployment:
+    target: QuantConnect cloud project
+    env_vars:
+      - name: CRYPTOQUANT_API_KEY
+        purpose: Authenticate CryptoQuant data pulls.
+      - name: COINSTATS_API_KEY
+        purpose: Authenticate CoinStats sentiment pulls.
+      - name: BINANCE_API_KEY
+        purpose: Access Binance order book snapshots.
+      - name: BINANCE_API_SECRET
+        purpose: Sign Binance requests where needed.
+      - name: QC_STORAGE_TOKEN
+        purpose: Access QuantConnect Object Store resources.
+  risks:
+    list:
+      - scope creep
+      - indirection creep
+      - missing validation
+      - deployment drift between local and cloud
+      - credential management drift between local secrets and QuantConnect
+      - external API schema changes breaking fetchers
+      - misaligned hourly merges when upstream data files are missing
