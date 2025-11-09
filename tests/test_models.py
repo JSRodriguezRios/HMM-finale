@@ -6,9 +6,16 @@ import pickle
 
 import numpy as np
 import pandas as pd
+import pytest
 from sklearn.preprocessing import StandardScaler
 
-from qcsrc.models import GaussianHMMWrapper, TrainingConfig, map_states
+from qcsrc.models import (
+    GaussianHMMWrapper,
+    TrainingConfig,
+    align_predictions,
+    compute_error_metrics,
+    map_states,
+)
 from qcsrc.models.thresholds import should_flat, should_long, should_short
 
 
@@ -67,6 +74,17 @@ def test_threshold_helpers():
 
     probabilities = np.array([0.1, 0.2, 0.9])
     assert should_flat(probabilities, 0.7) is True
+
+
+def test_compute_error_metrics_and_alignment():
+    pairs = align_predictions([(0.1, 0.2), (None, 0.3), (-0.15, -0.1)])
+    metrics = compute_error_metrics(pairs)
+
+    assert metrics.count == 2
+    assert metrics.mae == pytest.approx((0.1 + 0.05) / 2)
+    rmse_expected = math.sqrt(((0.1**2) + (0.05**2)) / 2)
+    assert metrics.rmse == pytest.approx(rmse_expected)
+    assert 0.0 <= metrics.direction_accuracy <= 1.0
 
 
 def test_train_hmm_for_symbol(tmp_path, monkeypatch):

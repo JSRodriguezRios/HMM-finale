@@ -15,6 +15,7 @@ from qcsrc.util.logging_utils import get_logger
 from qcsrc.io.file_locator import get_data_path
 
 from .align_merge import align_and_merge
+from .evaluate import evaluate_symbol
 from .fetch_binance_orderbook import fetch_binance_orderbook
 from .fetch_coinstats_sentiment import fetch_coinstats_sentiment
 from .fetch_cryptoquant import fetch_cryptoquant
@@ -77,6 +78,13 @@ def run_pipeline(
                 infer_probabilities_for_symbol(symbol)
             except (ValueError, FileNotFoundError) as error:
                 _LOGGER.warning("Skipping probability export for %s: %s", symbol, error)
+                continue
+
+            try:
+                _LOGGER.info("Evaluating probability performance for %s", symbol)
+                evaluate_symbol(symbol)
+            except (ValueError, FileNotFoundError) as error:
+                _LOGGER.warning("Skipping evaluation for %s: %s", symbol, error)
         else:
             _LOGGER.warning(
                 "Skipping feature build for %s because interim data is missing at %s",

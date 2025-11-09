@@ -122,3 +122,24 @@ Ensure the `qc_data/custom/**` exports and model artifacts under `data/models/`
 are synced to the QuantConnect cloud project before starting live or cloud
 backtests so the algorithm reads the latest probabilities and scalers.
 
+## Backtesting and evaluation
+
+- Run the full offline pipeline first to fetch data, align features, train the
+  HMM, export probabilities, and emit diagnostic parquet/CSV artifacts.
+- Execute a local backtest via Lean CLI (or on QuantConnect cloud) to generate
+  trading statistics. The algorithm logs per-symbol error metrics and persists
+  them to `data/models/diagnostics/<symbol>_metrics.json` at the end of each run
+  when the filesystem is writable.
+- For reproducible offline evaluation, run:
+
+  ```bash
+  python -m qcsrc.pipeline.evaluate
+  ```
+
+  This command compares exported probability expectations against the next
+  hour's realized returns, computing MAE, RMSE, MAPE, and directional accuracy
+  and writing the results to `data/models/diagnostics/`.
+- Inspect the generated JSON files and QuantConnect performance report to tune
+  the HMM thresholds (`config/settings.yaml`) or feature definitions
+  (`config/features.yaml`).
+
