@@ -93,3 +93,32 @@ The fetchers are wired to the user's preferred provider endpoints:
 
 Populate `CRYPTOQUANT_API_KEY` and `COINSTATS_API_KEY` in your environment (or `secrets/credentials.json`) before running the pipeline to authenticate with the private APIs.
 
+## QuantConnect algorithm integration
+
+`qcsrc/HMMCryptoAlgorithm.py` wires the exported probability series into a
+QuantConnect-ready trading loop:
+
+- Each configured crypto asset is added at minute resolution with an hourly
+  consolidator for diagnostics.
+- Custom data subscriptions load liquidity, sentiment, and HMM posterior
+  probabilities from the `qc_data/custom/**` directories.
+- Incoming probability bars are converted into trading signals. If the bullish
+  probability is at least the configured threshold (default `0.7`), the strategy
+  opens or maintains a long position; if the bearish probability breaches the
+  threshold it flips short; if the consolidation probability dominates, the
+  position is flattened. Signals persist until a different regime exceeds the
+  threshold, matching the probability management rules in the project brief.
+- Retraining checkpoints are logged according to `config/settings.yaml` so you
+  can schedule offline retraining and re-upload refreshed models and
+  probabilities.
+
+To backtest locally with the Lean CLI:
+
+```bash
+lean backtest "HMM_CRYPTO_QC" --data-provider local
+```
+
+Ensure the `qc_data/custom/**` exports and model artifacts under `data/models/`
+are synced to the QuantConnect cloud project before starting live or cloud
+backtests so the algorithm reads the latest probabilities and scalers.
+

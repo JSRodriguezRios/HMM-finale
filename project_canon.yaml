@@ -1,7 +1,7 @@
 coding_canon:
   meta:
     name: HMM Crypto QuantConnect Strategy
-    version: 0.8.0
+    version: 0.9.0
     owner: user
     date: 2024-05-09
   goals:
@@ -67,3 +67,4 @@ coding_canon:
       - hidden-state label drift between offline training and live inference
       - probability export drift between offline pipeline and QuantConnect custom data
       - custom data parsing drift between offline exports and QuantConnect readers
+      - live signal execution drift between offline probabilities and QC runtime
