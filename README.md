@@ -37,6 +37,25 @@ Document updates to this process alongside strategy changes so future deployment
 
 If you run the pipeline locally with the Lean CLI, configure `lean.json` (to be added) to point at `qcsrc/HMMCryptoAlgorithm.py` and relevant data directories.
 
+### Providing API keys to Lean CLI runs
+
+When invoking the QuantConnect algorithm or any of the pipeline commands through the Lean CLI, ensure the same credentials used locally are available to the spawned Python process:
+
+1. Keep your populated `secrets/credentials.json` file in place so the helper at `qcsrc/util/secrets.py` can resolve provider keys.
+2. Alternatively (or additionally) export the environment variables immediately before launching Lean. For example:
+   ```bash
+   export CRYPTOQUANT_API_KEY="<your-key>"
+   export COINSTATS_API_KEY="<your-key>"
+   # Binance is optional for the current depth endpoint, but include if you add private calls
+   export BINANCE_API_KEY="<your-key>"
+   export BINANCE_API_SECRET="<your-secret>"
+   lean backtest "HMM_CRYPTO_QC" --data-provider local
+   ```
+   You can also inline them on a single command: `CRYPTOQUANT_API_KEY=... COINSTATS_API_KEY=... lean backtest ...`.
+3. If you rely on a `.env` file, the pipeline entry points already load it via `python-dotenv`. For Lean CLI executions, call the helper script through a small wrapper that sources the `.env` file (e.g., `set -a; source .env; set +a; lean backtest ...`).
+
+These approaches keep sensitive values outside version control while making them available for both offline data pulls and CLI-managed backtests.
+
 ## Testing
 
 Pytest scaffolding is in `tests/`; add unit tests as pipeline modules are implemented:
