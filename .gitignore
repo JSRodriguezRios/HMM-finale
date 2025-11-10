@@ -17,6 +17,7 @@ ENV/
 
 # Data & secrets
 secrets/
+!secrets/.gitkeep
 *.parquet
 *.pkl
 *.csv
