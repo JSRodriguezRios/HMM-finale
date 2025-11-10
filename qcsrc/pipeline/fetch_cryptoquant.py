@@ -41,6 +41,42 @@ def _request(
     return response
 
 
+def _expand_daily_to_hourly(frame: pd.DataFrame) -> pd.DataFrame:
+    """Expand daily OHLCV rows into synthetic hourly entries.
+
+    Some CryptoQuant subscription tiers only expose daily candles. To keep the
+    downstream pipeline operating on hourly bars we duplicate each day into 24
+    hourly slots while evenly distributing volume metrics. Prices remain flat
+    across the generated hours because higher-resolution data is unavailable on
+    those tiers.
+    """
+
+    expanded_rows = []
+    for record in frame.itertuples(index=False):
+        timestamp: dt.datetime = record.timestamp
+        volume = record.volume / 24 if pd.notna(record.volume) else record.volume
+        quote_volume = (
+            record.quote_volume / 24 if pd.notna(record.quote_volume) else record.quote_volume
+        )
+        for hour in range(24):
+            expanded_rows.append(
+                {
+                    "timestamp": timestamp + dt.timedelta(hours=hour),
+                    "open": record.open,
+                    "high": record.high,
+                    "low": record.low,
+                    "close": record.close,
+                    "volume": volume,
+                    "quote_volume": quote_volume,
+                }
+            )
+
+    expanded = pd.DataFrame(expanded_rows)
+    expanded.sort_values("timestamp", inplace=True)
+    expanded.reset_index(drop=True, inplace=True)
+    return expanded
+
+
 def _build_output_path(symbol: str, date: dt.date, output_dir: Optional[Path]) -> Path:
     if output_dir:
         base = ensure_directory(output_dir)
@@ -102,7 +138,7 @@ def fetch_cryptoquant(
     limit = str(cq_meta.get("limit", 1000))
     start_utc = _ensure_utc(start)
     end_utc = _ensure_utc(end)
-    params = {
+    params: Dict[str, str] = {
         "window": window,
         "market": market,
         "exchange": exchange,
@@ -116,7 +152,29 @@ def fetch_cryptoquant(
 
     session = session or requests.Session()
     endpoint = f"{_BASE_URL}/{asset_path}/market-data/price-ohlcv"
-    response = _request(session, endpoint, headers=headers, params=params)
+
+    fallback_used = False
+    try:
+        response = _request(session, endpoint, headers=headers, params=params)
+    except requests.HTTPError as exc:
+        status = exc.response.status_code if exc.response is not None else None
+        if window == "hour" and status in {401, 403}:
+            _LOGGER.warning(
+                "CryptoQuant hourly window unauthorized for %s; falling back to daily "
+                "resolution and expanding to hourly placeholders.",
+                symbol,
+            )
+            fallback_params = dict(params)
+            fallback_params["window"] = "day"
+            response = _request(
+                session,
+                endpoint,
+                headers=headers,
+                params=fallback_params,
+            )
+            fallback_used = True
+        else:
+            raise
     payload = response.json()
 
     data = CryptoQuantResponse.model_validate(payload)
@@ -136,6 +194,9 @@ def fetch_cryptoquant(
     frame["timestamp"] = pd.to_datetime(frame["timestamp"], utc=True)
     frame.sort_values("timestamp", inplace=True)
     frame.reset_index(drop=True, inplace=True)
+
+    if fallback_used:
+        frame = _expand_daily_to_hourly(frame)
 
     frame = frame[(frame["timestamp"] >= start_utc) & (frame["timestamp"] < end_utc)]
 

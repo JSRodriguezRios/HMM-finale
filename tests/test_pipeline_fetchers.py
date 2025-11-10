@@ -103,6 +103,46 @@ def test_fetch_cryptoquant_returns_hourly_frame(monkeypatch, tmp_path):
     assert call["params"]["api_key"] == "cryptoquant-key"
 
 
+def test_fetch_cryptoquant_falls_back_to_daily_when_hour_unauthorized(monkeypatch, tmp_path):
+    unauthorized = DummyResponse({"result": []}, status_code=403)
+    daily_payload = {
+        "result": [
+            {
+                "timestamp": "2024-01-01T00:00:00Z",
+                "open": 200,
+                "high": 210,
+                "low": 190,
+                "close": 205,
+                "volume": 24,
+                "quote_volume": 4800,
+            }
+        ]
+    }
+
+    dummy_session = DummySession([unauthorized, DummyResponse(daily_payload)])
+    monkeypatch.setattr("requests.Session", lambda: dummy_session)
+
+    start = _utc("2024-01-01T00:00:00Z")
+    end = _utc("2024-01-02T00:00:00Z")
+    frame = fetch_cryptoquant(
+        "BTCUSD",
+        start,
+        end,
+        persist=False,
+        output_dir=tmp_path,
+    )
+
+    # One day expanded into 24 hourly rows with evenly distributed volume metrics.
+    assert frame.shape == (24, 7)
+    assert frame["timestamp"].iloc[0] == start
+    assert frame["timestamp"].iloc[-1] == start + dt.timedelta(hours=23)
+    assert frame["volume"].sum() == pytest.approx(24)
+    assert frame["quote_volume"].sum() == pytest.approx(4800)
+
+    assert dummy_session.calls[0]["params"]["window"] == "hour"
+    assert dummy_session.calls[1]["params"]["window"] == "day"
+
+
 def test_fetch_binance_orderbook_computes_metrics(monkeypatch, tmp_path):
     payload = {
         "lastUpdateId": 1,
