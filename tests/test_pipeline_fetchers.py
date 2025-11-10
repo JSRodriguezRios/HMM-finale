@@ -98,6 +98,9 @@ def test_fetch_cryptoquant_returns_hourly_frame(monkeypatch, tmp_path):
     ]
     assert frame.shape == (2, 7)
     assert frame["timestamp"].iloc[0] == start
+    call = dummy_session.calls[0]
+    assert call["headers"]["x-api-key"] == "cryptoquant-key"
+    assert call["params"]["api_key"] == "cryptoquant-key"
 
 
 def test_fetch_binance_orderbook_computes_metrics(monkeypatch, tmp_path):

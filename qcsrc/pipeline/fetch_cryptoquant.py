@@ -83,7 +83,8 @@ def fetch_cryptoquant(
         )
 
     credentials = _load_credentials()
-    headers = {"x-api-key": credentials.cryptoquant_api_key}
+    api_key = credentials.cryptoquant_api_key.strip()
+    headers = {"x-api-key": api_key}
 
     asset_path = cq_meta.get("asset_path")
     if not asset_path:
@@ -108,6 +109,10 @@ def fetch_cryptoquant(
         "symbol": symbol_param,
         "limit": limit,
     }
+    # Some CryptoQuant plans require the API key in the query string in addition to
+    # the ``x-api-key`` header. Including it here avoids 401 errors that stem from
+    # header-only authentication not being honoured for specific datasets.
+    params.setdefault("api_key", api_key)
 
     session = session or requests.Session()
     endpoint = f"{_BASE_URL}/{asset_path}/market-data/price-ohlcv"
