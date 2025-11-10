@@ -1,0 +1,49 @@
+assets:
+  BTCUSD:
+    qc_ticker: BTCUSD
+    cryptoquant:
+      asset_path: btc
+      symbol: btc_usd
+      market: spot
+      exchange: all_exchange
+      limit: 500
+    coinstats:
+      symbol: btc
+    binance:
+      symbol: BTCUSDT
+  ETHUSD:
+    qc_ticker: ETHUSD
+    cryptoquant:
+      asset_path: eth
+      symbol: eth_usd
+      market: spot
+      exchange: all_exchange
+      limit: 500
+    coinstats:
+      symbol: eth
+    binance:
+      symbol: ETHUSDT
+  SOLUSD:
+    qc_ticker: SOLUSD
+    cryptoquant:
+      asset_path: sol
+      symbol: sol_usd
+      market: spot
+      exchange: all_exchange
+      limit: 500
+    coinstats:
+      symbol: sol
+    binance:
+      symbol: SOLUSDT
+  BNBUSD:
+    qc_ticker: BNBUSD
+    cryptoquant:
+      asset_path: bnb
+      symbol: bnb_usd
+      market: spot
+      exchange: all_exchange
+      limit: 500
+    coinstats:
+      symbol: bnb
+    binance:
+      symbol: BNBUSDT
